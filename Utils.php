@@ -648,7 +648,7 @@ class Utils
      * @param string $schemaName
      * @return string
      */
-    public static function getSqlTableCollaction(string $tableName, string $schemaName): string
+    public static function getSqlTableCollation(string $tableName, string $schemaName): string
     {
         return 'SELECT TABLE_COLLATION collation_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=' . "'" . $tableName . "'" . ' AND TABLE_SCHEMA=' . "'" . $schemaName . "'";
     }
