@@ -1,0 +1,17 @@
+services:
+  # https://symfony.com/doc/4.4/bundles/best_practices.html#services
+  draeli_mysql.import:
+    class: Draeli\Mysql\Service\Import
+    arguments:
+      ['@parameter_bag', '@doctrine']
+    public: true
+
+  # https://symfony.com/doc/current/service_container/autowiring.html#using-aliases-to-enable-autowiring
+  Draeli\Mysql\Service\Import: '@draeli_mysql.import'
+
+#  Draeli\Mysql\EventSubscriber\ImportLoadConfigurationSubscriber:
+#    # https://symfony.com/doc/4.4/event_dispatcher.html#ref-event-subscriber-configuration
+#    tags:
+#      - { name: kernel.event_subscriber }
+#    arguments:
+#      ['@doctrine', '@draeli_mysql.import']

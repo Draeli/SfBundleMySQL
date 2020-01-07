@@ -1,0 +1,2 @@
+- Ajouter un CompilerPass qui vérifie que les noms de connections indiqués dans la configuration sont bien disponibles côté Doctrine  
+- 

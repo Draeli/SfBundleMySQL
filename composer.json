@@ -1,0 +1,39 @@
+{
+    "name": "draeli/mysql-bundle",
+    "version": "1.0.0",
+    "type": "symfony-bundle",
+    "description": "Mysql utils",
+    "keywords": ["Quick Import"],
+    "homepage": "https://symfony-bundle-mysql.yves-astier.com",
+    "license": "GPL-3.0-only",
+    "authors": [
+        {
+            "name": "Yves Astier",
+            "email": "contact@yves-astier.com"
+        }
+    ],
+    "require": {
+        "php": "^7.2",
+        "symfony/orm-pack": "~1.0",
+        "symfony/framework-bundle": "~4.1",
+        "symfony/filesystem": "~4.1"
+    },
+    "require-dev": {
+        "symfony/console": "^2.8 || ^3.0 || ^4.0",
+        "symfony/phpunit-bridge": "^2.8 || ^3.0 || ^4.0",
+        "phpunit/phpunit": "^4.8.35|^5.7.11|^6.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Draeli\\Mysql": ""
+        },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Draeli\\Mysql\\Tests\\": "/Tests/"
+        }
+    }
+}
