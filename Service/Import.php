@@ -333,7 +333,7 @@ class Import
                         if( \count($unknownColumns) ){
                             throw new \LogicException('Columns "' . implode(';', $unknownColumns) . '" are unknown.');
                         }
-                        array_merge($datas, $datasToChange);
+                        $datas = array_merge($datas, $datasToChange);
                     }
                 }
 
