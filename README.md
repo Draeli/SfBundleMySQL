@@ -14,7 +14,7 @@ Vous devez utiliser Composer pour faire l'installation (cf. https://getcomposer.
 ### Étape 1
 Télécharger et installer le composant via la commande suivante :
 ```console
-$ composer require "draeli/import-to-Mysql-bundle"
+$ composer require "draeli/mysql-bundle"
 ```
 
 ### Étape 2
