@@ -25,7 +25,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Draeli\\Mysql": ""
+            "Draeli\\Mysql\\": ""
         },
         "exclude-from-classmap": [
             "/Tests/"
