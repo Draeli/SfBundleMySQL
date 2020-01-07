@@ -1,6 +1,6 @@
 {
     "name": "draeli/mysql-bundle",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "type": "symfony-bundle",
     "description": "Mysql utils",
     "keywords": ["Quick Import"],
