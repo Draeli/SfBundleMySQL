@@ -627,6 +627,11 @@ class Utils
         return 'SELECT DATABASE()';
     }
 
+    public static function getSqlRowCount(): string
+    {
+        return 'SELECT ROW_COUNT() inserted';
+    }
+
     /**
      * @param string $tableName
      * @param string $schemaName

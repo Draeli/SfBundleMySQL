@@ -372,7 +372,7 @@ class Import
                 , Utils::LOAD_DATA_OPTION_DUPLICATE_STRATEGY => $configurationImport->getDuplicateStrategy()
             ]);
             $connectionTarget->executeQuery($sqlLoadData);
-            $stmt = $connectionTarget->executeQuery('SELECT ROW_COUNT() inserted');
+            $stmt = $connectionTarget->executeQuery(Utils::getSqlRowCount());
             $results = $stmt->fetch(\PDO::FETCH_ASSOC);
             $lineInserted = (int)($results['inserted'] ?? 0);
             $import->setLineInserted($lineInserted);
