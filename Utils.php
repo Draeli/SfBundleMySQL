@@ -640,7 +640,7 @@ class Utils
      */
     public static function getSqlCountRowTable(string $tableName, ?string $schemaName = null, ?string $columnName = null): string
     {
-        return 'SELECT COUNT(' . ( null === $columnName ? '*' : self::getSqlFieldNameQuoted($columnName)) . ') FROM ' . self::getJoinSchemaAndTable($tableName, $schemaName);
+        return 'SELECT COUNT(' . ( null === $columnName ? '*' : self::getSqlFieldNameQuoted($columnName)) . ') result FROM ' . self::getJoinSchemaAndTable($tableName, $schemaName);
     }
 
     /**
