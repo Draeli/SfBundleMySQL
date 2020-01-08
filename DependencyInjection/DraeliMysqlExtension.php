@@ -44,9 +44,5 @@ class DraeliMysqlExtension extends Extension implements PrependExtensionInterfac
         if( !isset($bundles['DoctrineBundle']) ){
             throw new \LogicException('DoctrineBundle must be registered.');
         }
-
-//        // Prepend a default config
-//        $default = Yaml::parseFile(__DIR__ . '/../Resources/config/default.yaml');
-//        $container->prependExtensionConfig('draeli_mysql', $default);
     }
 }

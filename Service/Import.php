@@ -71,7 +71,7 @@ class Import
 
     /**
      * Create a new instance of configuration import representation
-     * Choose a call of this method rather than direct instanciation
+     * Choose a call of this method rather than direct instantiation
      * @param string $sourceConnectionName
      * @param string $sourceTableName
      * @param string $targetConnectionName
@@ -81,6 +81,11 @@ class Import
     public function createConfigurationImport(string $sourceConnectionName, string $sourceTableName, string $targetConnectionName, array $fieldsAtTheOrigin): ComponentConfigurationImport
     {
         $instance = new ComponentConfigurationImport($sourceConnectionName, $sourceTableName, $targetConnectionName);
+
+        $configurationTable = $this->getConfigurationTable($sourceConnectionName, $sourceTableName);
+
+        $instance->setCollation($configurationTable[Configuration::NAME_IMPORT_ALIAS_TABLES_COLLATION] ?? null);
+
         foreach($fieldsAtTheOrigin as $fieldAtTheOrigin){
             if( !\is_string($fieldAtTheOrigin) ){
                 throw new \InvalidArgumentException('Field list must define only string.');
@@ -97,7 +102,7 @@ class Import
 
     /**
      * Create instance of configuration import for a field based upon configuration
-     * @param string $sourceConnectioName
+     * @param string $sourceConnectionName
      * @param string $sourceTableName
      * @param string $fieldNameAtTheOrigin
      * @param array $options All options are to use in replacement of original configuration value
@@ -105,12 +110,12 @@ class Import
      *      bool self::CONFIGURATION_FIELD_OPTION_OVERRIDE_NULLABLE
      * @return ComponentConfigurationImportField
      */
-    public function createConfigurationImportField(string $sourceConnectioName, string $sourceTableName, string $fieldNameAtTheOrigin, array $options = []): ComponentConfigurationImportField
+    public function createConfigurationImportField(string $sourceConnectionName, string $sourceTableName, string $fieldNameAtTheOrigin, array $options = []): ComponentConfigurationImportField
     {
-        $configurationTable = $this->getConfigurationTable($sourceConnectioName, $sourceTableName);
-        $fields = $configurationTable['fields'][$fieldNameAtTheOrigin] ?? null;
+        $configurationTable = $this->getConfigurationTable($sourceConnectionName, $sourceTableName);
+        $fields = $configurationTable[Configuration::NAME_IMPORT_ALIAS_TABLES_FIELDS][$fieldNameAtTheOrigin] ?? null;
         if( null === $fields ){
-            throw new \InvalidArgumentException('No field "' . $fieldNameAtTheOrigin .'" inside table "' . $sourceTableName . '" for connection "' . $sourceConnectioName . '".');
+            throw new \InvalidArgumentException('No field "' . $fieldNameAtTheOrigin .'" inside table "' . $sourceTableName . '" for connection "' . $sourceConnectionName . '".');
         }
 
         $type = $options[self::CONFIGURATION_FIELD_OPTION_OVERRIDE_TYPE] ?? $fields['type'];
@@ -132,9 +137,9 @@ class Import
      */
     public function updateIndexConfigurationImport(ComponentConfigurationImport $configurationImport, bool $keepUnknownIndex = true): void
     {
-        $sourceConnectioName = $configurationImport->getSourceConnectionName();
+        $sourceConnectionName = $configurationImport->getSourceConnectionName();
         $sourceTableName = $configurationImport->getSourceTableName();
-        $configurationTable = $this->getConfigurationTable($sourceConnectioName, $sourceTableName);
+        $configurationTable = $this->getConfigurationTable($sourceConnectionName, $sourceTableName);
         $indexes = $configurationTable['indexes'] ?? [];
 
         // Collection of source fields name
@@ -337,11 +342,9 @@ class Import
                     }
                 }
 
-                if( null !== $callbackLineValidation ){
-                    // avoid line if false
-                    if( !$callbackLineValidation($datas) ){
-                        continue;
-                    }
+                // avoid line if false
+                if((null !== $callbackLineValidation) && !$callbackLineValidation($datas)) {
+                    continue;
                 }
 
                 $this->addLineToCsv($configurationImport, $fp, $datas);
@@ -500,7 +503,7 @@ class Import
 
         foreach($configurationImport->getOrderTargetFields() as $fieldNameTarget){
             if( !isset($fields[$fieldNameTarget]) ){
-                throw new \LogicException('You define an order for fields with an inexisting field "' . $fieldNameTarget . '".');
+                throw new \LogicException('You define an order for fields with a non-existing field "' . $fieldNameTarget . '".');
             }
 
             $Field = $fields[$fieldNameTarget];
@@ -607,23 +610,23 @@ class Import
     }
 
     /**
-     * Retour configuration for a specific table of a specific connection
-     * @param string $sourceConnectioName Connection name inside configuration
+     * Return configuration for a specific table of a specific connection
+     * @param string $sourceConnectionName Connection name inside configuration
      * @param string $sourceTableName Table inside configuration
      * @return array
      */
-    public function getConfigurationTable(string $sourceConnectioName, string $sourceTableName): array
+    public function getConfigurationTable(string $sourceConnectionName, string $sourceTableName): array
     {
         $configurationAlias = $this->getConfiguration()[Configuration::NAME_IMPORT_ALIAS];
 
-        $connectionConfiguration = $configurationAlias[$sourceConnectioName] ?? null;
+        $connectionConfiguration = $configurationAlias[$sourceConnectionName] ?? null;
         if( null === $connectionConfiguration ){
-            throw new \InvalidArgumentException('Source connection name "' . $sourceConnectioName .'" does not exist.');
+            throw new \InvalidArgumentException('Source connection name "' . $sourceConnectionName .'" does not exist.');
         }
 
         $tableConfiguration = $connectionConfiguration[Configuration::NAME_IMPORT_ALIAS_TABLES][$sourceTableName] ?? null;
         if( null === $tableConfiguration ){
-            throw new \InvalidArgumentException('Source table name "' . $sourceTableName .'" inside "' . $sourceConnectioName . ' " connection does not exist.');
+            throw new \InvalidArgumentException('Source table name "' . $sourceTableName .'" inside "' . $sourceConnectionName . ' " connection does not exist.');
         }
 
         return $tableConfiguration;

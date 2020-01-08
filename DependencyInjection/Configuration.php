@@ -23,6 +23,9 @@ class Configuration implements ConfigurationInterface
     public const NAME_IMPORT_TEMP_FILE_FORMATTING_ESCAPE_CHAR = 'escape_char';
     public const NAME_IMPORT_ALIAS = 'alias';
     public const NAME_IMPORT_ALIAS_TABLES = 'tables';
+    public const NAME_IMPORT_ALIAS_TABLES_COLLATION = 'collation';
+    public const NAME_IMPORT_ALIAS_TABLES_FIELDS = 'fields';
+    public const NAME_IMPORT_ALIAS_TABLES_INDEXES = 'indexes';
     public const NAME_IMPORT_TABLE_PREFIX = 'table_prefix';
 
     /**
@@ -87,7 +90,11 @@ class Configuration implements ConfigurationInterface
                                         ->useAttributeAsKey('name')
                                         ->arrayPrototype()
                                             ->children()
-                                                ->arrayNode('fields')
+                                                ->scalarNode(self::NAME_IMPORT_ALIAS_TABLES_COLLATION)
+                                                    ->defaultNull()
+                                                    ->info('Define a collation to use for MySQL, to avoid weird behavior, he is recommended to define one would be same as the source.')
+                                                ->end()
+                                                ->arrayNode(self::NAME_IMPORT_ALIAS_TABLES_FIELDS)
                                                     // to prevent declaration of table without field
                                                     ->requiresAtLeastOneElement()
                                                     ->arrayPrototype()
@@ -162,7 +169,7 @@ class Configuration implements ConfigurationInterface
                                                         ->end()
                                                     ->end()
                                                 ->end()
-                                                ->arrayNode('indexes')
+                                                ->arrayNode(self::NAME_IMPORT_ALIAS_TABLES_INDEXES)
                                                     ->arrayPrototype()
                                                         ->children()
                                                             ->arrayNode('fields')

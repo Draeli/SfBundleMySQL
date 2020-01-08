@@ -380,7 +380,7 @@ class Utils
             return "'" . str_replace(['"', "'"], ['\"', "\'"], $default) . "'";
         }
 
-        throw new \LogicException('Unsuppported type "' . $type . '" with value "' . $default . '"');
+        throw new \LogicException('Unsupported type "' . $type . '" with value "' . $default . '"');
     }
 
     /**
@@ -651,5 +651,21 @@ class Utils
     public static function getSqlTableCollation(string $tableName, string $schemaName): string
     {
         return 'SELECT TABLE_COLLATION collation_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=' . "'" . $tableName . "'" . ' AND TABLE_SCHEMA=' . "'" . $schemaName . "'";
+    }
+
+    /**
+     * @param string $tableName
+     * @param string|null $schemaName
+     * @param string|null $collation
+     *      null is equivalent to 'utf8mb4_general_ci'
+     * @return string
+     */
+    public static function getSqlAlterTableCollation(string $tableName, ?string $schemaName = null, string $collation = null): string
+    {
+        if( null === $collation ){
+            $collation = 'utf8mb4_general_ci';
+        }
+        $charset = self::getCharsetFromCollation($collation);
+        return 'ALTER TABLE ' . self::getJoinSchemaAndTable($tableName, $schemaName) . ' CONVERT TO CHARACTER SET ' . $charset . ' COLLATE ' . $collation;
     }
 }

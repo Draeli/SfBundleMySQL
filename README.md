@@ -1,25 +1,25 @@
-# Bundle Import
+# MySQL Bundle
 
-Permet un import rapide d'une table à une autre entre une même base de données ou différentes base de données.
+Designed to simplify DBAL manipulation with MySQL in the KISS spirit.
 
-__Pré-requis__ :  
-- Symfony 4.4 ou supérieur  
-- Php 7.2 ou supérieur  
+__Prerequisites__ :  
+- Symfony 4.4 or higher  
+- Php 7.2 or higher  
 - Composer  
 
 ## Installation
 
-Vous devez utiliser Composer pour faire l'installation (cf. https://getcomposer.org/doc/00-intro.md)
+Use Composer to do installation (cf. https://getcomposer.org/doc/00-intro.md)
 
-### Étape 1
-Télécharger et installer le composant via la commande suivante :
+### Step 1
+Download and install components with :
 ```console
 $ composer require "draeli/mysql-bundle"
 ```
 
-### Étape 2
-Si vous utilisez Symfony Flex nous n'avez rien d'autre à faire.
-Sinon vous devez ouvrir le fichier `config/bundles.php` et ajouter la ligne suivante à la fin du tableau de configuration : 
+### Step 2
+If you used Flex you don't need more manipulation \o/
+If you don't used Flex, you need to open file  `config/bundles.php` and add the following line at the end of the configuration table : 
 ```php
 Draeli\Mysql\DraeliMysqlBundle::class => ['all' => true],
 ```

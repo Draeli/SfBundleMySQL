@@ -1,2 +1,4 @@
-- Ajouter un CompilerPass qui vérifie que les noms de connections indiqués dans la configuration sont bien disponibles côté Doctrine  
-- 
+- Add a CompilerPass which verifies that the connection names indicated in the configuration are available on the Doctrine side.  
+- Decouple the useful parts of the code on the MySQL side even without having Symfony and / or Doctrine.  
+- Add a Documentation  
+- Add a UnitTest  
