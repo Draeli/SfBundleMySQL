@@ -24,6 +24,7 @@ use Draeli\Mysql\Components\ConfigurationTableField as ComponentConfigurationTab
 use Draeli\Mysql\Components\ConfigurationTableIndex as ComponentConfigurationTableIndex;
 use Draeli\Mysql\Components\Import as ComponentImport;
 
+use Draeli\Mysql\Constants;
 use Draeli\Mysql\Utils;
 
 /**
@@ -486,7 +487,7 @@ class Import
     public function prepareConfigurationTable(ComponentConfigurationImport $configurationImport): ComponentConfigurationTable
     {
         $targetTableName = $this->getTableNameFromConfiguration($configurationImport);
-        $collation = $configurationImport->getCollation() ?? 'utf8mb4_general_ci';
+        $collation = $configurationImport->getCollation() ?? Constants::DEFAULT_COLLATION;
         $engine = $configurationImport->getEngine() ?? 'MyISAM';
 
         $configurationTable = new ComponentConfigurationTable($targetTableName, $collation, $engine);

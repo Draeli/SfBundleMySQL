@@ -70,6 +70,10 @@ class Utils
 
     public const LOAD_DATA_STRATEGY_REPLACE = 'replace';
 
+    public const OUT_NAME_INSERTED = 'inserted';
+
+    public const OUT_NAME_RESULT = 'result';
+
     /** @var \DateTimeZone */
     static private $UTC;
 
@@ -629,7 +633,7 @@ class Utils
 
     public static function getSqlRowCount(): string
     {
-        return 'SELECT ROW_COUNT() inserted';
+        return 'SELECT ROW_COUNT() ' . self::OUT_NAME_INSERTED;
     }
 
     /**
@@ -640,7 +644,7 @@ class Utils
      */
     public static function getSqlCountRowTable(string $tableName, ?string $schemaName = null, ?string $columnName = null): string
     {
-        return 'SELECT COUNT(' . ( null === $columnName ? '*' : self::getSqlFieldNameQuoted($columnName)) . ') result FROM ' . self::getJoinSchemaAndTable($tableName, $schemaName);
+        return 'SELECT COUNT(' . ( null === $columnName ? '*' : self::getSqlFieldNameQuoted($columnName)) . ') ' . self::OUT_NAME_RESULT .' FROM ' . self::getJoinSchemaAndTable($tableName, $schemaName);
     }
 
     /**
@@ -657,13 +661,13 @@ class Utils
      * @param string $tableName
      * @param string|null $schemaName
      * @param string|null $collation
-     *      null is equivalent to 'utf8mb4_general_ci'
+     *      null is equivalent to Constants::DEFAULT_COLLATION
      * @return string
      */
     public static function getSqlAlterTableCollation(string $tableName, ?string $schemaName = null, string $collation = null): string
     {
         if( null === $collation ){
-            $collation = 'utf8mb4_general_ci';
+            $collation = Constants::DEFAULT_COLLATION;
         }
         $charset = self::getCharsetFromCollation($collation);
         return 'ALTER TABLE ' . self::getJoinSchemaAndTable($tableName, $schemaName) . ' CONVERT TO CHARACTER SET ' . $charset . ' COLLATE ' . $collation;

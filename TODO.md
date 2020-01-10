@@ -1,4 +1,5 @@
 - Add a CompilerPass which verifies that the connection names indicated in the configuration are available on the Doctrine side.  
-- Decouple the useful parts of the code on the MySQL side even without having Symfony and / or Doctrine.  
+- Decouple the useful parts of the code on the MySQL side even without having Symfony and / or Doctrine.
+- Add decimal support for fields  
 - Add a Documentation  
 - Add a UnitTest  

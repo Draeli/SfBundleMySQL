@@ -25,4 +25,7 @@ class Constants
     public const INDEX_NORMAL = 'index';
     public const INDEX_PRIMARY = 'primary';
     public const INDEX_FULLTEXT = 'fulltext';
+
+    // Based on this answer : https://stackoverflow.com/questions/766809/whats-the-difference-between-utf8-general-ci-and-utf8-unicode-ci#answer-766996
+    public const DEFAULT_COLLATION = 'utf8_unicode_ci';
 }
