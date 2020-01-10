@@ -702,6 +702,6 @@ class Utils
      */
     private static function setSqlSchemaInformation(string $columnName, string $schemaName): string
     {
-        return 'SELECT ' . self::getSqlFieldNameQuoted($columnName) . ' FROM information_schema.SCHEMATA WHERE schema_name = ' . $schemaName;
+        return 'SELECT ' . self::getSqlFieldNameQuoted($columnName) . ' FROM information_schema.SCHEMATA WHERE schema_name = ' . "'" . $schemaName . "'";
     }
 }
