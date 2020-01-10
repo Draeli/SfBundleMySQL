@@ -677,23 +677,31 @@ class Utils
         return 'ALTER TABLE ' . self::getJoinSchemaAndTable($tableName, $schemaName) . ' CONVERT TO CHARACTER SET ' . $charset . ' COLLATE ' . $collation;
     }
 
-    public static function getSqlSchemaDefaultCharacterName(string $tableName): string
+    /**
+     * @param string $schemaName
+     * @return string
+     */
+    public static function getSqlSchemaDefaultCharacterName(string $schemaName): string
     {
-        return self::setSqlSchemaInformation(self::OUT_SCHEMA_DEFAULT_CHARACTER_NAME, $tableName);
+        return self::setSqlSchemaInformation(self::OUT_SCHEMA_DEFAULT_CHARACTER_NAME, $schemaName);
     }
 
-    public static function getSqlSchemaDefaultCollationName(string $tableName): string
+    /**
+     * @param string $schemaName
+     * @return string
+     */
+    public static function getSqlSchemaDefaultCollationName(string $schemaName): string
     {
-        return self::setSqlSchemaInformation(self::OUT_SCHEMA_DEFAULT_COLLATION_NAME, $tableName);
+        return self::setSqlSchemaInformation(self::OUT_SCHEMA_DEFAULT_COLLATION_NAME, $schemaName);
     }
 
     /**
      * @param string $columnName
-     * @param string $tableName
+     * @param string $schemaName$schemaName
      * @return string
      */
-    private static function setSqlSchemaInformation(string $columnName, string $tableName): string
+    private static function setSqlSchemaInformation(string $columnName, string $schemaName): string
     {
-        return 'SELECT ' . self::getSqlFieldNameQuoted($columnName) . ' FROM information_schema.SCHEMATA WHERE schema_name = ' . self::getSqlTableNameQuoted($tableName);
+        return 'SELECT ' . self::getSqlFieldNameQuoted($columnName) . ' FROM information_schema.SCHEMATA WHERE schema_name = ' . self::getSqlTableNameQuoted($schemaName);
     }
 }
