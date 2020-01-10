@@ -74,6 +74,10 @@ class Utils
 
     public const OUT_NAME_RESULT = 'result';
 
+    public const OUT_SCHEMA_DEFAULT_CHARACTER_NAME = 'DEFAULT_CHARACTER_SET_NAME';
+
+    public const OUT_SCHEMA_DEFAULT_COLLATION_NAME = 'DEFAULT_COLLATION_NAME';
+
     /** @var \DateTimeZone */
     static private $UTC;
 
@@ -671,5 +675,25 @@ class Utils
         }
         $charset = self::getCharsetFromCollation($collation);
         return 'ALTER TABLE ' . self::getJoinSchemaAndTable($tableName, $schemaName) . ' CONVERT TO CHARACTER SET ' . $charset . ' COLLATE ' . $collation;
+    }
+
+    public static function getSqlSchemaDefaultCharacterName(string $tableName): string
+    {
+        return self::setSqlSchemaInformation(self::OUT_SCHEMA_DEFAULT_CHARACTER_NAME, $tableName);
+    }
+
+    public static function getSqlSchemaDefaultCollationName(string $tableName): string
+    {
+        return self::setSqlSchemaInformation(self::OUT_SCHEMA_DEFAULT_COLLATION_NAME, $tableName);
+    }
+
+    /**
+     * @param string $columnName
+     * @param string $tableName
+     * @return string
+     */
+    private static function setSqlSchemaInformation(string $columnName, string $tableName): string
+    {
+        return 'SELECT ' . self::getSqlFieldNameQuoted($columnName) . ' FROM information_schema.SCHEMATA WHERE schema_name = ' . self::getSqlTableNameQuoted($tableName);
     }
 }
