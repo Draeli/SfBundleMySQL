@@ -246,7 +246,7 @@ class Import
             $callbackBefore($configurationImport);
         }
 
-        $configurationTable = $this->prepareConfigurationTable($configurationImport);
+        $configurationTable = $this->prepareComponentConfigurationTable($configurationImport);
 
         $import = new ComponentImport($configurationImport, $configurationTable);
 
@@ -484,7 +484,7 @@ class Import
      * @param ComponentConfigurationImport $configurationImport
      * @return ComponentConfigurationTable
      */
-    public function prepareConfigurationTable(ComponentConfigurationImport $configurationImport): ComponentConfigurationTable
+    public function prepareComponentConfigurationTable(ComponentConfigurationImport $configurationImport): ComponentConfigurationTable
     {
         $targetTableName = $this->getTableNameFromConfiguration($configurationImport);
         $collation = $configurationImport->getCollation() ?? Constants::DEFAULT_COLLATION;

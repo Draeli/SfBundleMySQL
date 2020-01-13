@@ -3,3 +3,6 @@
 - Add decimal support for fields  
 - Add a Documentation  
 - Add a UnitTest  
+- Manage UUIDs for import
+- Manage strategy alternative for case "Allowed memory size of…"
+- 
