@@ -119,14 +119,15 @@ class Import
             throw new \InvalidArgumentException('No field "' . $fieldNameAtTheOrigin .'" inside table "' . $sourceTableName . '" for connection "' . $sourceConnectionName . '".');
         }
 
-        $type = $options[self::CONFIGURATION_FIELD_OPTION_OVERRIDE_TYPE] ?? $fields['type'];
-        $nullable = $options[self::CONFIGURATION_FIELD_OPTION_OVERRIDE_NULLABLE] ?? $fields['nullable'];
+        $type = $options[self::CONFIGURATION_FIELD_OPTION_OVERRIDE_TYPE] ?? $fields[Configuration::NAME_IMPORT_ALIAS_FIELD_TYPE];
+        $nullable = $options[self::CONFIGURATION_FIELD_OPTION_OVERRIDE_NULLABLE] ?? $fields[Configuration::NAME_IMPORT_ALIAS_FIELD_NULLABLE];
 
         $instance = new ComponentConfigurationImportField($type, $nullable, $fieldNameAtTheOrigin);
-        $instance->setTargetName($fields['name']);
-        $instance->setLength($fields['length'] ?? null);
-        $instance->setSigned($fields['signed'] ?? null);
-        $instance->setDefault($fields['default'] ?? null);
+        $instance->setTargetName($fields[Configuration::NAME_IMPORT_ALIAS_FIELD_NAME]);
+        $instance->setLength($fields[Configuration::NAME_IMPORT_ALIAS_FIELD_LENGTH] ?? null);
+        $instance->setSigned($fields[Configuration::NAME_IMPORT_ALIAS_FIELD_SIGNED] ?? null);
+        $instance->setDefault($fields[Configuration::NAME_IMPORT_ALIAS_FIELD_DEFAULT] ?? null);
+        $instance->setSelect($fields[Configuration::NAME_IMPORT_ALIAS_FIELD_SELECT] ?? null);
 
         return $instance;
     }
@@ -471,7 +472,15 @@ class Import
         }
         $fieldsSource = [];
         foreach($fields as $field){
-            $fieldsSource[] = $field->getSourceAsset()->getQuotedName($platform);
+            $select = $field->getSelect();
+            // in case there is no specific select
+            if( null === $select ) {
+                $fieldsSource[] = $field->getSourceAsset()->getQuotedName($platform);
+            }
+            else{
+                // /!\ there is no filter/quote on select, you are supposed to know what you do in that case!
+                $fieldsSource[] = $select;
+            }
         }
         // to get access to quoted name
         $tableAsset = new Table($configurationImport->getSourceTableName());

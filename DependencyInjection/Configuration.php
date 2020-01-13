@@ -28,6 +28,14 @@ class Configuration implements ConfigurationInterface
     public const NAME_IMPORT_ALIAS_TABLES_INDEXES = 'indexes';
     public const NAME_IMPORT_TABLE_PREFIX = 'table_prefix';
 
+    public const NAME_IMPORT_ALIAS_FIELD_NAME = 'name';
+    public const NAME_IMPORT_ALIAS_FIELD_TYPE = 'type';
+    public const NAME_IMPORT_ALIAS_FIELD_NULLABLE = 'nullable';
+    public const NAME_IMPORT_ALIAS_FIELD_SIGNED = 'signed';
+    public const NAME_IMPORT_ALIAS_FIELD_DEFAULT = 'default';
+    public const NAME_IMPORT_ALIAS_FIELD_LENGTH = 'length';
+    public const NAME_IMPORT_ALIAS_FIELD_SELECT = 'select';
+
     /**
      * {@inheritdoc}
      */
@@ -99,12 +107,12 @@ class Configuration implements ConfigurationInterface
                                                     ->requiresAtLeastOneElement()
                                                     ->arrayPrototype()
                                                         ->children()
-                                                            ->scalarNode('name')
+                                                            ->scalarNode(self::NAME_IMPORT_ALIAS_FIELD_NAME)
                                                                 ->isRequired()
                                                                 ->cannotBeEmpty()
                                                                 ->info('Column name on MySQL side')
                                                             ->end()
-                                                            ->enumNode('type')
+                                                            ->enumNode(self::NAME_IMPORT_ALIAS_FIELD_TYPE)
                                                                 ->isRequired()
                                                                 ->cannotBeEmpty()
                                                                 ->values([Constants::TYPE_INTEGER, Constants::TYPE_STRING, Constants::TYPE_FLOAT, Constants::TYPE_DATE, Constants::TYPE_DATETIME, Constants::TYPE_TIME, Constants::TYPE_TEXT, Constants::TYPE_BLOB, Constants::TYPE_BOOLEAN])
@@ -118,18 +126,21 @@ class Configuration implements ConfigurationInterface
 - "' . Constants::TYPE_BLOB . '" (LONGBLOB)
 - "' . Constants::TYPE_BOOLEAN . '" (TINYINT)')
                                                             ->end()
-                                                            ->booleanNode('nullable')
+                                                            ->booleanNode(self::NAME_IMPORT_ALIAS_FIELD_NULLABLE)
                                                                 ->isRequired()
                                                             ->end()
-                                                            ->booleanNode('signed')
+                                                            ->booleanNode(self::NAME_IMPORT_ALIAS_FIELD_SIGNED)
                                                                 ->info('Option only for types "' . Constants::TYPE_INTEGER . '";"' . Constants::TYPE_FLOAT . '".')
                                                             ->end()
-                                                            ->integerNode('length')
+                                                            ->integerNode(self::NAME_IMPORT_ALIAS_FIELD_LENGTH)
                                                                 ->min(1)
                                                                 ->max(255)
                                                                 ->info('Option only for type "' . Constants::TYPE_STRING . '".')
                                                             ->end()
-                                                            ->scalarNode('default')
+                                                            ->scalarNode(self::NAME_IMPORT_ALIAS_FIELD_DEFAULT)
+                                                            ->end()
+                                                            ->scalarNode(self::NAME_IMPORT_ALIAS_FIELD_SELECT)
+                                                                ->defaultNull()
                                                             ->end()
                                                         ->end()
                                                         ->validate()

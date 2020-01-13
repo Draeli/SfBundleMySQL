@@ -18,6 +18,11 @@ class ConfigurationImportField extends AbstractConfigurationImportField
     private $sourceName;
 
     /**
+     * @var string|null
+     */
+    private $select;
+
+    /**
      * @var callable|null
      */
     private $callbackCleaning;
@@ -49,6 +54,22 @@ class ConfigurationImportField extends AbstractConfigurationImportField
     public function getSourceName(): string
     {
         return $this->sourceName;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getSelect(): ?string
+    {
+        return $this->select;
+    }
+
+    /**
+     * @param string|null $select
+     */
+    public function setSelect(?string $select): void
+    {
+        $this->select = $select;
     }
 
     /**
