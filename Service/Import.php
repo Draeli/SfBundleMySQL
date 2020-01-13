@@ -535,10 +535,11 @@ class Import
     /**
      * @param Connection $connection
      * @param ComponentConfigurationTable $configurationTable
+     * @param bool $errorIfNotExist
      */
-    public function dropTable(Connection $connection, ComponentConfigurationTable $configurationTable): void
+    public function dropTable(Connection $connection, ComponentConfigurationTable $configurationTable, bool $errorIfNotExist = false): void
     {
-        $sql = Utils::getSqlDropTable($configurationTable);
+        $sql = Utils::getSqlDropTable($configurationTable, $errorIfNotExist);
         $connection->executeQuery($sql);
     }
 
