@@ -473,13 +473,14 @@ class Import
         $fieldsSource = [];
         foreach($fields as $field){
             $select = $field->getSelect();
+            $fieldQuoted = $field->getSourceAsset()->getQuotedName($platform);
             // in case there is no specific select
             if( null === $select ) {
-                $fieldsSource[] = $field->getSourceAsset()->getQuotedName($platform);
+                $fieldsSource[] =$fieldQuoted;
             }
             else{
                 // /!\ there is no filter/quote on select, you are supposed to know what you do in that case!
-                $fieldsSource[] = $select;
+                $fieldsSource[] = $select . ' ' . $fieldQuoted;
             }
         }
         // to get access to quoted name
