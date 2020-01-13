@@ -546,10 +546,11 @@ class Import
      * Do the query to create table structure
      * @param Connection $connection
      * @param ComponentConfigurationTable $configurationTable
+     * @param bool $ignoreExisting
      */
-    public function createTable(Connection $connection, ComponentConfigurationTable $configurationTable): void
+    public function createTable(Connection $connection, ComponentConfigurationTable $configurationTable, bool $ignoreExisting = false): void
     {
-        $structure = Utils::getSqlStructureTable($configurationTable);
+        $structure = Utils::getSqlStructureTable($configurationTable, $ignoreExisting);
         $connection->executeQuery($structure);
     }
 

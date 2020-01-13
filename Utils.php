@@ -156,9 +156,10 @@ class Utils
 
     /**
      * @param ConfigurationTable $configurationTable
+     * @param bool $ignoreExisting
      * @return string SQL to create table
      */
-    public static function getSqlStructureTable(ConfigurationTable $configurationTable): string
+    public static function getSqlStructureTable(ConfigurationTable $configurationTable, bool $ignoreExisting = false): string
     {
         $fields = $configurationTable->getFields();
 
@@ -166,7 +167,7 @@ class Utils
             throw new \LogicException('You must define at least one field!');
         }
 
-        $toReturn = 'CREATE TABLE IF NOT EXISTS ' . self::getSchemaAndTable($configurationTable) . '(';
+        $toReturn = 'CREATE TABLE' . ( $ignoreExisting ? ' IF NOT EXISTS' : '' ) . ' ' . self::getSchemaAndTable($configurationTable) . '(';
 
         $columns = [];
         foreach($fields as $Field){
@@ -183,7 +184,8 @@ class Utils
             }
 
             $parts[] = $isNullable ? 'NULL': 'NOT NULL';
-            $parts[] = 'DEFAULT ' . self::getDefaultValue($Field);
+            $defaultValue = self::getDefaultValue($Field);
+            $parts[] = 'DEFAULT ' . ('NULL' === $defaultValue ? 'NULL' : "'" . str_replace("'", "\'", $defaultValue) . "'");
 
             $columns[] = implode(' ', $parts);
         }
@@ -234,8 +236,9 @@ class Utils
     {
         switch($type){
             case Constants::INDEX_UNIQUE:
-            case Constants::INDEX_PRIMARY:
                 return 'UNIQUE INDEX';
+            case Constants::INDEX_PRIMARY:
+                return 'PRIMARY KEY';
             case Constants::INDEX_NORMAL:
                 return 'INDEX';
             case Constants::INDEX_FULLTEXT:
@@ -357,9 +360,14 @@ class Utils
         $type = $Field->getType();
         // default value consolidated
         $default = self::getDefaultForField($Field);
+        $isNullable = $Field->isNullable();
 
         if( null === $default ){
-            return 'NULL';
+            if( $isNullable ) {
+                return 'NULL';
+            }
+
+            throw new \LogicException('Type ' . $type . ' is not supported.');
         }
 
         if( $default instanceof \DateTime ){
@@ -455,8 +463,8 @@ class Utils
                 return 0;
             }
 
-            if( \in_array($type, [Constants::TYPE_DATE, Constants::TYPE_TIME, Constants::TYPE_DATETIME], true) ){
-                return null;
+            if( in_array($type, [Constants::TYPE_DATE, Constants::TYPE_TIME, Constants::TYPE_DATETIME], true) ){
+                return new \DateTime('0001-01-01 00:00:00', self::createUTC());
             }
 
             if( \in_array($type, [Constants::TYPE_STRING, Constants::TYPE_TEXT, Constants::TYPE_BLOB, Constants::TYPE_BOOLEAN], true) ){
