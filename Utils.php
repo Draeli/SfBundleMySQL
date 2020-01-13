@@ -166,7 +166,7 @@ class Utils
             throw new \LogicException('You must define at least one field!');
         }
 
-        $toReturn = 'CREATE TABLE ' . self::getSchemaAndTable($configurationTable) . '(';
+        $toReturn = 'CREATE TABLE IF NOT EXISTS ' . self::getSchemaAndTable($configurationTable) . '(';
 
         $columns = [];
         foreach($fields as $Field){
