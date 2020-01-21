@@ -42,24 +42,22 @@ class Writer implements TypedWriterInterface
     /**
      * @param ConfigurationImport $configurationImport
      * @param string $filename
-     * @param string $delimiter
-     * @param string $enclosure
-     * @param string $escape
      * @param bool $withBom
      * @param string $terminate
      */
     public function __construct(
         ConfigurationImport $configurationImport
         , string $filename
-        , string $delimiter = ','
-        , string $enclosure = '"'
-        , string $escape = '\\'
         , bool $withBom = false
         , string $terminate = "\n"
     )
     {
         // clone to avoid object change after export preparation
         $this->configurationImport = clone $configurationImport;
+        
+        $delimiter = $this->configurationImport->getFormattingDelimiter();
+        $enclosure = $this->configurationImport->getFormattingEnclosure();
+        $escape = $this->configurationImport->getFormattingEscapeChar();
         $this->typedWriter = new BaseWriter($filename, $delimiter, $enclosure, $escape, false, $withBom, $terminate);
 
         // /!\ To avoid weird behaviour, calculated field must appear in last position

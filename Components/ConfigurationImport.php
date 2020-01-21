@@ -580,7 +580,7 @@ class ConfigurationImport
     public function getFormattingDelimiter(): string
     {
         if( null === $this->formattingDelimiter ){
-            return ',';
+            return "\t";
         }
         return $this->formattingDelimiter;
     }
