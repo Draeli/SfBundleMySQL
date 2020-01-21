@@ -15,7 +15,8 @@
         "php": "^7.2",
         "symfony/orm-pack": "~1.0",
         "symfony/framework-bundle": "~4.1",
-        "symfony/filesystem": "~4.1"
+        "symfony/filesystem": "~4.1",
+        "sonata-project/exporter": "^2.0"
     },
     "require-dev": {
         "symfony/console": "^2.8 || ^3.0 || ^4.0",

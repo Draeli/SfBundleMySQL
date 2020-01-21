@@ -12,18 +12,20 @@ use Symfony\Component\Filesystem\Filesystem;
 
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
+use Sonata\Exporter\Source\DoctrineDBALConnectionSourceIterator;
+use Sonata\Exporter\Handler as ExporterHandler;
+
 use Draeli\Mysql\DependencyInjection\Configuration;
 
 use Draeli\Mysql\Components\AbstractConfigurationImportField as ComponentAbstractConfigurationImport;
 use Draeli\Mysql\Components\ConfigurationImport as ComponentConfigurationImport;
 use Draeli\Mysql\Components\ConfigurationImportField as ComponentConfigurationImportField;
-use Draeli\Mysql\Components\ConfigurationImportFieldCalculated as ComponentConfigurationImportFieldCalculated;
 use Draeli\Mysql\Components\ConfigurationImportIndex as ComponentConfigurationImportIndex;
 use Draeli\Mysql\Components\ConfigurationTable as ComponentConfigurationTable;
 use Draeli\Mysql\Components\ConfigurationTableField as ComponentConfigurationTableField;
 use Draeli\Mysql\Components\ConfigurationTableIndex as ComponentConfigurationTableIndex;
 use Draeli\Mysql\Components\Import as ComponentImport;
-
+use Draeli\Mysql\Writer;
 use Draeli\Mysql\Constants;
 use Draeli\Mysql\Utils;
 
@@ -260,134 +262,65 @@ class Import
         $sqlSelect = $this->getSqlSelect($configurationImport);
         $import->setSelectSqlSource($sqlSelect);
 
-        // get datas from source
-        $stmt = $connectionSource->executeQuery($sqlSelect);
-        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        if( \count($results) ){
-            $fieldsOrder = $configurationImport->getOrderTargetFields();
-            $fieldsTarget = $configurationImport->getFieldsTargetName();
-            // to be sure all fields targeted (normal field and calculated field) are declared for order
-            $fieldsMissing = array_diff($fieldsTarget, $fieldsOrder);
-            if( \count($fieldsMissing) ){
-                throw new \LogicException('Some fields are missing inside order definition, please add : ' . implode('; ', $fieldsMissing));
-            }
-
-            $fieldsTarget = $configurationImport->getFieldsFromTargetName($fieldsOrder);
-
-            // Prepare callback type conversion
-            $fieldsConversionType = [];
-            foreach ($fieldsOrder as $fieldNameTarget){
-                $field = $fieldsTarget[$fieldNameTarget];
-                $fieldsConversionType[$fieldNameTarget] = static function($data)use($field){
-                    return Utils::getDataConverted($data, $field);
-                };
-            }
-
-            // Prepare directory and file for store temp datas to load
-            $directoryTempFile = $this->getConfigurationTempFileDirectory();
-            if( !$this->filesystem->exists($directoryTempFile) ){
-                $this->filesystem->mkdir($directoryTempFile);
-            }
-            $fileTempFile = $directoryTempFile . $this->getConfigurationTempFilePrefix() . $configurationTable->getTableName();
-            $fp = fopen($fileTempFile, 'wb');
-            if( false === $fp ){
-                throw new \RuntimeException('Could not open memory PHP wrapper.');
-            }
-            // Contain columns name to use for first line of file witch will be create below
-            $this->addLineToCsv($configurationImport, $fp, $fieldsOrder);
-
-            $callbackLineCleaning = $configurationImport->getCallbackLineCleaning();
-            $callbackLineValidation = $configurationImport->getCallbackLineValidation();
-
-            $lineCreated = 0;
-            foreach($results as $result){
-                $datas = [];
-                // manage field result by order
-                foreach ($fieldsOrder as $fieldName){
-                    $field = $fieldsTarget[$fieldName];
-
-                    if( $field instanceof ComponentConfigurationImportField ){
-                        $sourceName = $field->getSourceName();
-                        $value = $result[$sourceName];
-
-                        $callbackCleaning = $field->getCallbackCleaning();
-                        if( null !== $callbackCleaning ){
-                            // to clean/manage value before his conversion
-                            $value = $callbackCleaning($value);
-                        }
-                    }
-                    elseif( $field instanceof ComponentConfigurationImportFieldCalculated ){
-                        $value = $field->getCallbackCalcul()($result);
-                    }
-                    else{
-                        throw new \UnexpectedValueException('Unsupported field type.');
-                    }
-
-                    // ensure value is converted according with field definition
-                    $value = $fieldsConversionType[$fieldName]($value);
-
-                    $datas[$fieldName] = $value;
-                }
-
-                if( null !== $callbackLineCleaning ){
-                    // to adjust some field for special case where dependency between fields is required
-                    $datasToChange = $callbackLineCleaning($datas);
-                    if( !\is_array($datasToChange) && null !== $datasToChange ){
-                        throw new \InvalidArgumentException('Callback for "getCallbackLineCleaning" must return array or null.');
-                    }
-                    if( \is_array($datasToChange) ){
-                        $unknownColumns = array_diff_key($datasToChange, $datas);
-                        if( \count($unknownColumns) ){
-                            throw new \LogicException('Columns "' . implode(';', $unknownColumns) . '" are unknown.');
-                        }
-                        $datas = array_merge($datas, $datasToChange);
-                    }
-                }
-
-                // avoid line if false
-                if((null !== $callbackLineValidation) && !$callbackLineValidation($datas)) {
-                    continue;
-                }
-
-                $this->addLineToCsv($configurationImport, $fp, $datas);
-                $lineCreated++;
-            }
-
-            fclose($fp);
-
-            $import->setTempFile($fileTempFile);
-            $import->setLineCreated($lineCreated);
-
-            $tableName = $configurationTable->getTableName();
-
-            $connectionTarget->executeQuery(Utils::getSqlLockTableWrite($tableName));
-
-            if( $configurationImport->isDisableKeys() ){
-                $connectionTarget->executeQuery(Utils::getSqlDisableKeys($tableName));
-            }
-
-            $sqlLoadData = Utils::getSqlLoadData($fileTempFile, $tableName, [
-                Utils::LOAD_DATA_OPTION_TERMINATED_BY => $configurationImport->getFormattingDelimiter()
-                , Utils::LOAD_DATA_OPTION_ENCLOSED_BY => $configurationImport->getFormattingEnclosure()
-                , Utils::LOAD_DATA_OPTION_ESCAPED_BY => $configurationImport->getFormattingEscapeChar()
-                , Utils::LOAD_DATA_OPTION_IGNORE_LINES => 1
-                , Utils::LOAD_DATA_OPTION_COLUMNS => $fieldsOrder
-                , Utils::LOAD_DATA_OPTION_CHARSET => Utils::getCharsetFromCollation($configurationTable->getCollation())
-                , Utils::LOAD_DATA_OPTION_SCHEMA => $configurationTable->getSchema()
-                , Utils::LOAD_DATA_OPTION_DUPLICATE_STRATEGY => $configurationImport->getDuplicateStrategy()
-            ]);
-            $connectionTarget->executeQuery($sqlLoadData);
-            $stmt = $connectionTarget->executeQuery(Utils::getSqlRowCount());
-            $results = $stmt->fetch(\PDO::FETCH_ASSOC);
-            $lineInserted = (int)($results['inserted'] ?? 0);
-            $import->setLineInserted($lineInserted);
-
-            if( $configurationImport->isDisableKeys() ){
-                $connectionTarget->executeQuery(Utils::getSqlEnableKeys($tableName));
-            }
-
-            $connectionTarget->executeQuery(Utils::getSqlUnlockTables());
+        /*----------
+        Prepare stuff necessary before import
+        ----------*/
+        $fieldsOrder = $configurationImport->getOrderTargetFields();
+        $fieldsTarget = $configurationImport->getFieldsTargetName();
+        // to be sure all fields targeted (normal field and calculated field) are declared for order
+        $fieldsMissing = array_diff($fieldsTarget, $fieldsOrder);
+        if( \count($fieldsMissing) ){
+            throw new \LogicException('Some fields are missing inside order definition, please add : ' . implode('; ', $fieldsMissing));
         }
+
+        // Prepare directory and file for store temp datas to load
+        $directoryTempFile = $this->getConfigurationTempFileDirectory();
+        if( !$this->filesystem->exists($directoryTempFile) ){
+            $this->filesystem->mkdir($directoryTempFile);
+        }
+        $fileTempFile = $directoryTempFile . $this->getConfigurationTempFilePrefix() . $configurationTable->getTableName();
+        if( file_exists($fileTempFile) ){
+            @unlink($fileTempFile);
+        }
+
+        $writer = new Writer($configurationImport, $fileTempFile);
+        $source = new DoctrineDBALConnectionSourceIterator($connectionSource, $sqlSelect);
+        ExporterHandler::create($source, $writer)->export();
+
+        $lineCreated = $writer->getLinesCreated();
+
+        $import->setTempFile($fileTempFile);
+        $import->setLineCreated($lineCreated);
+
+        $tableName = $configurationTable->getTableName();
+
+        $connectionTarget->executeQuery(Utils::getSqlLockTableWrite($tableName));
+
+        if( $configurationImport->isDisableKeys() ){
+            $connectionTarget->executeQuery(Utils::getSqlDisableKeys($tableName));
+        }
+
+        $sqlLoadData = Utils::getSqlLoadData($fileTempFile, $tableName, [
+            Utils::LOAD_DATA_OPTION_TERMINATED_BY => $configurationImport->getFormattingDelimiter()
+            , Utils::LOAD_DATA_OPTION_ENCLOSED_BY => $configurationImport->getFormattingEnclosure()
+            , Utils::LOAD_DATA_OPTION_ESCAPED_BY => $configurationImport->getFormattingEscapeChar()
+            , Utils::LOAD_DATA_OPTION_IGNORE_LINES => 1
+            , Utils::LOAD_DATA_OPTION_COLUMNS => $fieldsOrder
+            , Utils::LOAD_DATA_OPTION_CHARSET => Utils::getCharsetFromCollation($configurationTable->getCollation())
+            , Utils::LOAD_DATA_OPTION_SCHEMA => $configurationTable->getSchema()
+            , Utils::LOAD_DATA_OPTION_DUPLICATE_STRATEGY => $configurationImport->getDuplicateStrategy()
+        ]);
+        $connectionTarget->executeQuery($sqlLoadData);
+        $stmt = $connectionTarget->executeQuery(Utils::getSqlRowCount());
+        $results = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $lineInserted = (int)($results['inserted'] ?? 0);
+        $import->setLineInserted($lineInserted);
+
+        if( $configurationImport->isDisableKeys() ){
+            $connectionTarget->executeQuery(Utils::getSqlEnableKeys($tableName));
+        }
+
+        $connectionTarget->executeQuery(Utils::getSqlUnlockTables());
 
         // in case we have erase…
         if( $configurationImport->isEraseExisting() ) {
@@ -411,27 +344,6 @@ class Import
 
         return $import;
     }
-
-    /**
-     * @param ComponentConfigurationImport $configurationImport
-     * @param resource $fp
-     * @param array $datas
-     */
-    private function addLineToCsv(ComponentConfigurationImport $configurationImport, $fp, array $datas): void
-    {
-        $delimiter = $configurationImport->getFormattingDelimiter();
-        $enclosure = $configurationImport->getFormattingEnclosure();
-        $escapeChar = $configurationImport->getFormattingEscapeChar();
-        foreach ($datas as &$data){
-            if( null === $data ){
-                // https://dev.mysql.com/doc/refman/8.0/en/problems-with-null.html => "To load a NULL value into a column, use \N in the data file"
-                $data = '\N';
-            }
-        }
-        unset($data);
-        fputcsv($fp, $datas, $delimiter, $enclosure, $escapeChar);
-    }
-
     /**
      * @param ComponentConfigurationImport $configurationImport
      * @return Connection
