@@ -42,23 +42,21 @@ class Writer implements TypedWriterInterface
     /**
      * @param ConfigurationImport $configurationImport
      * @param string $filename
-     * @param bool $withBom
-     * @param string $terminate
      */
     public function __construct(
         ConfigurationImport $configurationImport
         , string $filename
-        , bool $withBom = false
-        , string $terminate = "\n"
     )
     {
         // clone to avoid object change after export preparation
         $this->configurationImport = clone $configurationImport;
-        
+
         $delimiter = $this->configurationImport->getFormattingDelimiter();
         $enclosure = $this->configurationImport->getFormattingEnclosure();
         $escape = $this->configurationImport->getFormattingEscapeChar();
-        $this->typedWriter = new BaseWriter($filename, $delimiter, $enclosure, $escape, false, $withBom, $terminate);
+        $withBom = false;
+        $terminate = "\n";
+        $this->typedWriter = new BaseWriter($filename, $delimiter, $enclosure, $escape, false, , $terminate);
 
         // /!\ To avoid weird behaviour, calculated field must appear in last position
         // Contain columns name to use for first line of file witch will be create in write method
@@ -132,6 +130,13 @@ class Writer implements TypedWriterInterface
         // add line only if there is no callback or callback return true
         if( (null === $callbackLineValidation) || $callbackLineValidation($result) ){
             ++$this->lineCreated;
+            foreach($result as &$v){
+                if( null === $v ){
+                    // https://dev.mysql.com/doc/refman/8.0/en/problems-with-null.html => "To load a NULL value into a column, use \N in the data file"
+                    $v = '\N';
+                }
+            }
+            unset($v);
             $this->typedWriter->write($result);
         }
     }
