@@ -56,7 +56,7 @@ class Writer implements TypedWriterInterface
         $escape = $this->configurationImport->getFormattingEscapeChar();
         $withBom = false;
         $terminate = "\n";
-        $this->typedWriter = new BaseWriter($filename, $delimiter, $enclosure, $escape, false, , $terminate);
+        $this->typedWriter = new BaseWriter($filename, $delimiter, $enclosure, $escape, false, $withBom, $terminate);
 
         // /!\ To avoid weird behaviour, calculated field must appear in last position
         // Contain columns name to use for first line of file witch will be create in write method
