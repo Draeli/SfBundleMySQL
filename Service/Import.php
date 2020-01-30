@@ -444,7 +444,16 @@ class Import
             $type = $index->getType();
             $configurationTableIndex = new ComponentConfigurationTableIndex($name, $type);
             foreach ($index->getFields() as $fieldNameOrigin => $fieldValue){
-                $configurationImportField = $configurationImport->getField($fieldNameOrigin);
+                $configurationImportField = null;
+                if( $configurationImport->hasField($fieldNameOrigin) ){
+                    $configurationImportField = $configurationImport->getField($fieldNameOrigin);
+                }
+                if( $configurationImport->hasFieldCalculated($fieldNameOrigin) ){
+                    $configurationImportField = $configurationImport->getFieldCalculated($fieldNameOrigin);
+                }
+                if( null === $configurationImportField ){
+                    throw new \LogicException('No find field named "' . $fieldNameOrigin . '"');
+                }
                 $configurationTableIndex->addFieldName($configurationImportField->getTargetName(), $fieldValue);
             }
 
