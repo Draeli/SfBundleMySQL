@@ -666,7 +666,7 @@ class Utils
      */
     public static function getSqlTableCollation(string $tableName, string $schemaName): string
     {
-        return 'SELECT TABLE_COLLATION collation_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=' . "'" . $tableName . "'" . ' AND TABLE_SCHEMA=' . "'" . $schemaName . "'";
+        return 'SELECT TABLE_COLLATION collation_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=' . "'" . $tableName . "'" . ' AND TABLE_SCHEMA=' . "'" . self::replaceQuote($schemaName) . "'";
     }
 
     /**
@@ -710,6 +710,31 @@ class Utils
      */
     private static function setSqlSchemaInformation(string $columnName, string $schemaName): string
     {
-        return 'SELECT ' . self::getSqlFieldNameQuoted($columnName) . ' FROM information_schema.SCHEMATA WHERE schema_name = ' . "'" . $schemaName . "'";
+        return 'SELECT ' . self::getSqlFieldNameQuoted($columnName) . ' FROM information_schema.SCHEMATA WHERE SCHEMA_NAME=' . "'" . self::replaceQuote($schemaName) . "'";
+    }
+
+    /**
+     * @param string $tableName
+     * @return string
+     */
+    public static function ifExistTable(string $tableName): string
+    {
+        return "SELECT 1 exist FROM information_schema.TABLES WHERE TABLE_SCHEMA=schema() AND TABLE_NAME='" . self::replaceQuote($tableName) . "'";
+    }
+
+    /**
+     * @param string $tableName
+     * @param string $columnName
+     * @return string
+     */
+    public static function ifExistColumn(string $tableName, string $columnName): string
+    {
+        return "SELECT 1 exist FROM information_schema.TABLES WHERE TABLE_SCHEMA=schema() AND TABLE_NAME='" . self::replaceQuote($tableName) . "' AND COLUMN_NAME='" . self::replaceQuote($columnName) . "'";
+    }
+
+
+    private static function replaceQuote(string $toSanitize): string
+    {
+        return str_replace("'", "\'", $toSanitize);
     }
 }
