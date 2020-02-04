@@ -493,7 +493,7 @@ class Import
      */
     public function updateTableIndex(Connection $connection, ComponentConfigurationTable $configurationTable): void
     {
-        $alters = Utils::getSqlAddIndex($configurationTable);
+        $alters = Utils::getSqlAddIndexes($configurationTable);
         foreach ($alters as $alter){
             $connection->executeQuery($alter);
         }

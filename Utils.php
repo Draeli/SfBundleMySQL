@@ -76,9 +76,19 @@ class Utils
 
     public const OUT_NAME_EXIST = 'exist';
 
+    public const OUT_NAME_COLLATION_NAME = 'collation_name';
+
     public const OUT_SCHEMA_DEFAULT_CHARACTER_NAME = 'DEFAULT_CHARACTER_SET_NAME';
 
     public const OUT_SCHEMA_DEFAULT_COLLATION_NAME = 'DEFAULT_COLLATION_NAME';
+
+    public const ALTER_ALGORITHM_INSTANT = 'INSTANT';
+
+    public const ALTER_ALGORITHM_COPY = 'COPY';
+
+    public const ALTER_ALGORITHM_REPLACE = 'REPLACE';
+
+    public const ALTER_ALGORITHM_DEFAULT = 'DEFAULT';
 
     /** @var \DateTimeZone */
     static private $UTC;
@@ -160,6 +170,7 @@ class Utils
      * @param ConfigurationTable $configurationTable
      * @param bool $ignoreExisting
      * @return string SQL to create table
+     * @throws \Exception
      */
     public static function getSqlStructureTable(ConfigurationTable $configurationTable, bool $ignoreExisting = false): string
     {
@@ -173,23 +184,7 @@ class Utils
 
         $columns = [];
         foreach($fields as $Field){
-            $isNullable = $Field->isNullable();
-            $name = $Field->getName();
-            $signed = $Field->getSigned();
-
-            $parts = [];
-            $parts[] = self::getSqlFieldNameQuoted($name);
-            $parts[] = self::getColumnType($Field);
-
-            if( null !== $signed ){
-                $parts[] = 'UNSIGNED';
-            }
-
-            $parts[] = $isNullable ? 'NULL': 'NOT NULL';
-            $defaultValue = self::getDefaultValue($Field);
-            $parts[] = 'DEFAULT ' . ('NULL' === $defaultValue ? 'NULL' : "'" . str_replace("'", "\'", $defaultValue) . "'");
-
-            $columns[] = implode(' ', $parts);
+            $columns[] = self::getFieldDefinition($Field);
         }
 
         $toReturn .= implode(',',$columns );
@@ -201,11 +196,37 @@ class Utils
     }
 
     /**
+     * @param ConfigurationTableField $Field
+     * @return string
+     * @throws \Exception
+     */
+    private static function getFieldDefinition(ConfigurationTableField $Field): string
+    {
+        $isNullable = $Field->isNullable();
+        $name = $Field->getName();
+        $signed = $Field->getSigned();
+
+        $parts = [];
+        $parts[] = self::getSqlFieldNameQuoted($name);
+        $parts[] = self::getColumnType($Field);
+
+        if( null !== $signed ){
+            $parts[] = 'UNSIGNED';
+        }
+
+        $parts[] = $isNullable ? 'NULL': 'NOT NULL';
+        $defaultValue = self::getDefaultValue($Field);
+        $parts[] = 'DEFAULT ' . ('NULL' === $defaultValue ? 'NULL' : "'" . self::replaceQuote((string)$defaultValue) . "'");
+
+        return implode(' ', $parts);
+    }
+
+    /**
      * Return collection of queries to create indexes
      * @param ConfigurationTable $configurationTable
      * @return string[] List of SQL
      */
-    public static function getSqlAddIndex(ConfigurationTable $configurationTable): array
+    public static function getSqlAddIndexes(ConfigurationTable $configurationTable): array
     {
         $schemaAndTable = self::getSchemaAndTable($configurationTable);
         $begin = 'ALTER TABLE ' . $schemaAndTable . ' ADD ';
@@ -227,6 +248,35 @@ class Utils
         }
 
         return $return;
+    }
+
+    /**
+     * @param string $tableName
+     * @param ConfigurationTableField $field
+     * @param string|null $algorithm
+     * @return string
+     */
+    public static function getSqlAddColumn(string $tableName, ConfigurationTableField $field, ?string $algorithm = null): string
+    {
+        if( null === $algorithm ){
+            $algorithm = self::ALTER_ALGORITHM_DEFAULT;
+        }
+
+        if( !\in_array($algorithm, self::getListAlgorithmForAlterReplace(), true)){
+            throw new \InvalidArgumentException('Unknown algorithm.');
+        }
+
+        return 'ALTER TABLE ' . self::getSqlTableNameQuoted($tableName) . ' ADD COLUMN ' . self::getFieldDefinition($field) . ', ALGORITHM=' . $algorithm;
+    }
+
+    public static function getListAlgorithmForAlterReplace(): array
+    {
+        return [
+            self::ALTER_ALGORITHM_DEFAULT
+            , self::ALTER_ALGORITHM_INSTANT
+            , self::ALTER_ALGORITHM_COPY
+            , self::ALTER_ALGORITHM_REPLACE
+        ];
     }
 
     /**
@@ -356,6 +406,7 @@ class Utils
     /**
      * @param ConfigurationTableField $Field
      * @return string|int|float|null
+     * @throws \Exception
      */
     private static function getDefaultValue(ConfigurationTableField $Field)
     {
@@ -440,6 +491,7 @@ class Utils
      * get default value for field and check if necessary
      * @param ConfigurationTableField $configurationTableField
      * @return mixed
+     * @throws \Exception
      */
     private static function getDefaultForField(ConfigurationTableField $configurationTableField)
     {
@@ -509,6 +561,11 @@ class Utils
             }
 
             if( \in_array($type, [Constants::TYPE_STRING, Constants::TYPE_TEXT, Constants::TYPE_BLOB, Constants::TYPE_BOOLEAN], true) ){
+                if( Constants::TYPE_BOOLEAN === $type ){
+                    if( \is_bool($currentDefault) || \is_int($currentDefault) ){
+                        $currentDefault = (string)$currentDefault;
+                    }
+                }
                 if( !\is_string($currentDefault) ){
                     throw new \LogicException('Default value for target field "' . $name . '" is not a "' . Constants::TYPE_STRING . '".');
                 }
@@ -668,7 +725,7 @@ class Utils
      */
     public static function getSqlTableCollation(string $tableName, string $schemaName): string
     {
-        return 'SELECT TABLE_COLLATION collation_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=' . "'" . $tableName . "'" . ' AND TABLE_SCHEMA=' . "'" . self::replaceQuote($schemaName) . "'";
+        return 'SELECT TABLE_COLLATION ' . self::OUT_NAME_COLLATION_NAME . ' FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=' . "'" . $tableName . "'" . ' AND TABLE_SCHEMA=' . "'" . self::replaceQuote($schemaName) . "'";
     }
 
     /**
