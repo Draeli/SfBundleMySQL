@@ -74,6 +74,8 @@ class Utils
 
     public const OUT_NAME_RESULT = 'result';
 
+    public const OUT_NAME_EXIST = 'exist';
+
     public const OUT_SCHEMA_DEFAULT_CHARACTER_NAME = 'DEFAULT_CHARACTER_SET_NAME';
 
     public const OUT_SCHEMA_DEFAULT_COLLATION_NAME = 'DEFAULT_COLLATION_NAME';
@@ -719,7 +721,7 @@ class Utils
      */
     public static function ifExistTable(string $tableName): string
     {
-        return "SELECT 1 exist FROM information_schema.TABLES WHERE TABLE_SCHEMA=schema() AND TABLE_NAME='" . self::replaceQuote($tableName) . "'";
+        return 'SELECT 1 ' . self::OUT_NAME_EXIST . " FROM information_schema.TABLES WHERE TABLE_SCHEMA=schema() AND TABLE_NAME='" . self::replaceQuote($tableName) . "'";
     }
 
     /**
@@ -729,7 +731,7 @@ class Utils
      */
     public static function ifExistColumn(string $tableName, string $columnName): string
     {
-        return "SELECT 1 exist FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=schema() AND TABLE_NAME='" . self::replaceQuote($tableName) . "' AND COLUMN_NAME='" . self::replaceQuote($columnName) . "'";
+        return 'SELECT 1 ' . self::OUT_NAME_EXIST . " FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=schema() AND TABLE_NAME='" . self::replaceQuote($tableName) . "' AND COLUMN_NAME='" . self::replaceQuote($columnName) . "'";
     }
 
 
