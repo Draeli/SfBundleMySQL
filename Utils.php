@@ -729,7 +729,7 @@ class Utils
      */
     public static function ifExistColumn(string $tableName, string $columnName): string
     {
-        return "SELECT 1 exist FROM information_schema.TABLES WHERE TABLE_SCHEMA=schema() AND TABLE_NAME='" . self::replaceQuote($tableName) . "' AND COLUMN_NAME='" . self::replaceQuote($columnName) . "'";
+        return "SELECT 1 exist FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=schema() AND TABLE_NAME='" . self::replaceQuote($tableName) . "' AND COLUMN_NAME='" . self::replaceQuote($columnName) . "'";
     }
 
 
