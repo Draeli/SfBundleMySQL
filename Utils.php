@@ -78,6 +78,8 @@ class Utils
 
     public const OUT_NAME_COLLATION_NAME = 'collation_name';
 
+    public const OUT_NAME_LAST_INSERT_ID = 'last_insert_id';
+
     public const OUT_SCHEMA_DEFAULT_CHARACTER_NAME = 'DEFAULT_CHARACTER_SET_NAME';
 
     public const OUT_SCHEMA_DEFAULT_COLLATION_NAME = 'DEFAULT_COLLATION_NAME';
@@ -702,6 +704,9 @@ class Utils
         return 'SELECT DATABASE()';
     }
 
+    /**
+     * @return string
+     */
     public static function getSqlRowCount(): string
     {
         return 'SELECT ROW_COUNT() ' . self::OUT_NAME_INSERTED;
@@ -792,8 +797,20 @@ class Utils
     }
 
 
+    /**
+     * @param string $toSanitize
+     * @return string
+     */
     private static function replaceQuote(string $toSanitize): string
     {
         return str_replace("'", "\'", $toSanitize);
+    }
+
+    /**
+     * @return string
+     */
+    public static function getSqlLastInsertId(): string
+    {
+        return 'SELECT LAST_INSERT_ID() ' . self::OUT_NAME_LAST_INSERT_ID;
     }
 }
